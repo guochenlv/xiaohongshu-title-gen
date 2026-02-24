@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书爆款标题生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe4e8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(255, 82, 89, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff4757;
+        }
+
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b81 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .title-item {
+            background: #fff9fa;
+            border: 1px solid #ffe4e6;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .title-item:hover {
+            border-color: #ff4757;
+            background: white;
+        }
+
+        .title-item .title {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .title-item .reason {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .copy-tip {
+            color: #ff4757;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        .free-limit {
+            text-align: center;
+            margin-top: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: #ff4757;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 小红书爆款标题生成器</h1>
+        <p class="subtitle">输入主题，AI帮你生成10W+赞的标题</p>
+
+        <div class="input-group">
+            <label>📝 你的主题/内容是什么？</label>
+            <textarea id="topic" placeholder="例如：分享一款好用的护肤品/推荐平价穿搭/租房避坑指南"></textarea>
+        </div>
+
+        <button class="generate-btn" onclick="generateTitles()">✨ 生成爆款标题</button>
+
+        <div class="free-limit">
+            今日剩余次数：<span id="remain">5</span> 次
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <div class="footer">
+            免费工具 · 每天5次 · <a href="#">升级VIP无限用</a>
+        </div>
+    </div>
+
+    <script>
+        let todayCount = localStorage.getItem('title_gen_count') || 0;
+        let today = localStorage.getItem('title_gen_date');
+        const now = new Date().toDateString();
+
+        if (today !== now) {
+            todayCount = 0;
+            localStorage.setItem('title_gen_date', now);
+        }
+
+        document.getElementById('remain').textContent = 5 - todayCount;
+
+        async function generateTitles() {
+            const topic = document.getElementById('topic').value.trim();
+            const resultsDiv = document.getElementById('results');
+
+            if (!topic) {
+                alert('请输入主题内容');
+                return;
+            }
+
+            if (todayCount >= 5) {
+                alert('今日次数已用完，明天再来吧！');
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">🤔 AI正在思考中...</div>';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    resultsDiv.innerHTML = '<div class="loading" style="color:red">' + data.error + '</div>';
+                    return;
+                }
+
+                todayCount++;
+                localStorage.setItem('title_gen_count', todayCount);
+                localStorage.setItem('title_gen_date', now);
+                document.getElementById('remain').textContent = 5 - todayCount;
+
+                let html = '<h3>💡 生成的标题（点击复制）：</h3>';
+
+                data.titles.forEach((item, index) => {
+                    html += `
+                        <div class="title-item" onclick="copyTitle(this)">
+                            <div class="title">${index + 1}. ${item.title}</div>
+                            <div class="reason">${item.reason}</div>
+                        </div>
+                    `;
+                });
+
+                resultsDiv.innerHTML = html;
+
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="loading" style="color:red">生成失败，请重试</div>';
+            }
+        }
+
+        function copyTitle(element) {
+            const title = element.querySelector('.title').textContent.replace(/^\d+\.\s*/, '');
+            navigator.clipboard.writeText(title);
+
+            const tip = document.createElement('span');
+            tip.className = 'copy-tip';
+            tip.textContent = '✓ 已复制';
+            element.appendChild(tip);
+
+            setTimeout(() => tip.remove(), 1500);
+        }
+    </script>
+</body>
+</html>

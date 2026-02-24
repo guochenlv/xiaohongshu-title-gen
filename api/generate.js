@@ -1,5 +1,9 @@
-const API_KEY = 'sk-491bf4bb22484b4ca09439496ccb7065';  // 你的API密钥
+const API_KEY = process.env.API_KEY;
 const API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+
+if (!API_KEY) {
+    throw new Error('API_KEY环境变量未设置');
+}
 
 export default async function handler(req, res) {
     // 只允许POST请求

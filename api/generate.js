@@ -1,5 +1,5 @@
 const API_KEY = 'sk-491bf4bb22484b4ca09439496ccb7065';  // 你的API密钥
-const API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+const API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
 
 export default async function handler(req, res) {
     // 只允许POST请求
@@ -42,12 +42,13 @@ export default async function handler(req, res) {
                 'Authorization': `Bearer ${API_KEY}`
             },
             body: JSON.stringify({
-                model: 'Qwen/Qwen2.5-7B-Instruct',
+                model: 'qwen-plus',
                 messages: [
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.8,
-                max_tokens: 1024
+                max_tokens: 1024,
+                stream: false
             })
         });
 
